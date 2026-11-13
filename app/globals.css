@@ -1,26 +1,345 @@
 @import "tailwindcss";
+@import "lenis/dist/lenis.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ---------- Theme tokens: day / dusk / night ---------- */
+:root,
+[data-theme="day"] {
+  --paper: #fbfcfa;
+  --paper-2: #f2f5f1;
+  --ink: #1f231d;
+  --ink-2: #4a5045;
+  --ink-3: #687064;
+  --ink-soft: #8e958a;
+  --line: #e1e6df;
+  --line-soft: #ecf0ea;
+  --accent: #b8431f;
+  --sky-top: #eef4f1;
+  --sky-mid: #f5f8f5;
+  --sky-bottom: #fbfcfa;
+  --orb: #fdf7e6;
+  --orb-glow: #f3e3b4;
+  --cloud: #ffffff;
+  --star-opacity: 0;
+  --grain-opacity: 0.025;
+  color-scheme: light;
+}
+
+[data-theme="dusk"] {
+  --paper: #f6e3c4;
+  --paper-2: #f0d8b2;
+  --ink: #3b2b1c;
+  --ink-2: #5c4632;
+  --ink-3: #83694c;
+  --ink-soft: #a08a68;
+  --line: #e0c9a4;
+  --line-soft: #edd9b8;
+  --accent: #d4551d;
+  --sky-top: #e9c6b4;
+  --sky-mid: #f3d9bd;
+  --sky-bottom: #f6e3c4;
+  --orb: #fbd3a6;
+  --orb-glow: #f2a172;
+  --cloud: #ffd9c2;
+  --star-opacity: 0.25;
+  --grain-opacity: 0.04;
+  color-scheme: light;
+}
+
+[data-theme="night"] {
+  --paper: #14181c;
+  --paper-2: #1a1f24;
+  --ink: #eceae2;
+  --ink-2: #b9bcb2;
+  --ink-3: #8b9188;
+  --ink-soft: #6b7168;
+  --line: #2e343a;
+  --line-soft: #23282d;
+  --accent: #ef7a52;
+  --sky-top: #0d1118;
+  --sky-mid: #12161b;
+  --sky-bottom: #14181c;
+  --orb: #2a303a;
+  --orb-glow: #3a4258;
+  --cloud: #2a3140;
+  --star-opacity: 1;
+  --grain-opacity: 0.05;
+  color-scheme: dark;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-paper: var(--paper);
+  --color-paper-2: var(--paper-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-accent: var(--accent);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-fraunces);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--paper);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  transition:
+    background-color 0.8s ease,
+    color 0.8s ease;
+}
+
+/* Smooth colour handoff when switching themes */
+.theme-anim *,
+.theme-anim *::before,
+.theme-anim *::after {
+  transition:
+    background-color 0.8s ease,
+    border-color 0.8s ease,
+    color 0.8s ease,
+    fill 0.8s ease,
+    stroke 0.8s ease,
+    opacity 0.8s ease !important;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--paper);
+}
+
+.font-serif {
+  font-variation-settings: "SOFT" 50, "WONK" 0;
+}
+.wonk {
+  font-variation-settings: "SOFT" 100, "WONK" 1;
+}
+
+/* ---------- Film grain (barely there) ---------- */
+.grain {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  opacity: var(--grain-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+}
+[data-theme="night"] .grain {
+  mix-blend-mode: screen;
+}
+
+/* ---------- Sky: soft gradient + blurred clouds ---------- */
+.sky {
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 40%, var(--sky-bottom) 85%);
+  transition: background 0.8s ease;
+}
+.cloud-soft {
+  position: absolute;
+  border-radius: 9999px;
+  background: var(--cloud);
+  filter: blur(40px);
+  opacity: 0.55;
+  animation: float 26s ease-in-out infinite alternate;
+}
+[data-theme="night"] .cloud-soft {
+  opacity: 0.18;
+}
+@keyframes float {
+  from { transform: translate3d(-3%, 0, 0); }
+  to { transform: translate3d(3%, -6%, 0); }
+}
+.stars {
+  opacity: var(--star-opacity);
+  transition: opacity 1.2s ease;
+}
+.twinkle {
+  animation: twinkle 4s ease-in-out infinite;
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.8; }
+}
+
+/* ---------- Roll: text slides up, copy slides in from below ---------- */
+.roll {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+}
+.roll > span {
+  display: block;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.roll > span + span {
+  position: absolute;
+  inset: 0;
+  transform: translateY(105%);
+}
+.group:hover .roll > span:first-child,
+.roll:hover > span:first-child {
+  transform: translateY(-105%);
+}
+.group:hover .roll > span + span,
+.roll:hover > span + span {
+  transform: translateY(0);
+}
+
+/* ---------- Underline that draws itself ---------- */
+.link-draw {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-position: 100% 100%;
+  background-repeat: no-repeat;
+  transition: background-size 0.45s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease;
+}
+.link-draw:hover,
+.group:hover .link-draw {
+  background-size: 100% 1px;
+  background-position: 0 100%;
+}
+
+/* ---------- Letters that lift on hover ---------- */
+.lift > span {
+  display: inline-block;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease;
+}
+.lift > span:hover {
+  transform: translateY(-0.08em);
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cloud-soft,
+  .twinkle {
+    animation: none !important;
+  }
+  .roll > span,
+  .lift > span {
+    transition: none !important;
+  }
+}
+
+/* ---------- Hero sentence: hobby words that pick the illustration ---------- */
+.pick {
+  cursor: pointer;
+  color: var(--ink-3);
+  background-image: linear-gradient(var(--line), var(--line)), linear-gradient(var(--accent), var(--accent));
+  background-size: 100% 1px, 0% 2px;
+  background-position: 0 100%, 0 100%;
+  background-repeat: no-repeat;
+  transition: color 0.35s ease, background-size 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.pick:hover {
+  color: var(--ink);
+}
+.pick[aria-pressed="true"] {
+  color: var(--accent);
+  background-size: 100% 1px, 100% 2px;
+}
+.pick:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* ---------- Stage behind the illustration ---------- */
+.orb {
+  background: radial-gradient(circle at 50% 38%, var(--orb) 0%, var(--orb) 45%, var(--orb-glow) 100%);
+  box-shadow: 0 0 120px 20px color-mix(in srgb, var(--orb-glow) 35%, transparent);
+  transition: background 0.8s ease, box-shadow 0.8s ease;
+}
+.ring {
+  border: 1px dashed var(--line);
+  border-radius: 9999px;
+}
+.spin-slow {
+  animation: spin 60s linear infinite;
+}
+.spin-slower {
+  animation: spin 90s linear infinite reverse;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spin-slow,
+  .spin-slower {
+    animation: none !important;
+  }
+}
+
+/* ---------- Dot grid backdrop, fading toward the edges ---------- */
+.dot-grid {
+  background-image: radial-gradient(color-mix(in srgb, var(--ink) 16%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 75%);
+}
+
+/* ---------- Floating stickers around the hero arch ---------- */
+.bob {
+  animation: bob 6s ease-in-out infinite;
+}
+@keyframes bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -8px; }
+}
+.scan {
+  animation: scan 2.4s ease-in-out infinite alternate;
+}
+@keyframes scan {
+  from { top: 12%; }
+  to { top: 82%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bob,
+  .scan {
+    animation: none !important;
+  }
+}
+
+/* ---------- Receipt with a torn zigzag bottom ---------- */
+.receipt {
+  --zz: 10px;
+  mask:
+    conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / calc(2 * var(--zz)) 100%;
+  padding-bottom: calc(var(--zz) + 14px);
+}
+.strike {
+  position: relative;
+}
+.strike::after {
+  content: "";
+  position: absolute;
+  left: -2px;
+  right: -2px;
+  top: 52%;
+  height: 1.5px;
+  background: var(--accent);
+  transform: scaleX(var(--s, 1));
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.group:hover .strike::after {
+  --s: 0;
+}
+.stamp {
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.3s ease;
+}
+.group:hover .stamp {
+  transform: rotate(-4deg) scale(1.25);
+  opacity: 0;
+}
+.lift-letter {
+  display: inline-block;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), color 0.3s ease;
+}
+.lift-letter:hover {
+  transform: translateY(-0.04em) rotate(-2deg);
+  color: var(--accent);
 }
